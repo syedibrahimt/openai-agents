@@ -9,6 +9,7 @@ import Image from "next/image";
 import Transcript from "./components/Transcript";
 import Events from "./components/Events";
 import BottomToolbar from "./components/BottomToolbar";
+import Notes from "./components/Notes";
 
 // Types
 import { SessionStatus } from "@/app/types";
@@ -17,6 +18,7 @@ import type { RealtimeAgent } from '@openai/agents/realtime';
 // Context providers & hooks
 import { useTranscript } from "@/app/contexts/TranscriptContext";
 import { useEvent } from "@/app/contexts/EventContext";
+import { useNotes } from "@/app/contexts/NotesContext";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
 import { createModerationGuardrail } from "@/app/agentConfigs/guardrails";
 
@@ -27,11 +29,13 @@ import { chatSupervisorScenario } from "@/app/agentConfigs/chatSupervisor";
 import { customerServiceRetailCompanyName } from "@/app/agentConfigs/customerServiceRetail";
 import { chatSupervisorCompanyName } from "@/app/agentConfigs/chatSupervisor";
 import { simpleHandoffScenario } from "@/app/agentConfigs/simpleHandoff";
+import { aiTutoringScenario } from "@/app/agentConfigs/tutor";
 
 // Map used by connect logic for scenarios defined via the SDK.
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   simpleHandoff: simpleHandoffScenario,
   customerServiceRetail: customerServiceRetailScenario,
+  aiTutoring: aiTutoringScenario,
   chatSupervisor: chatSupervisorScenario,
 };
 
@@ -61,6 +65,7 @@ function App() {
     addTranscriptBreadcrumb,
   } = useTranscript();
   const { logClientEvent, logServerEvent } = useEvent();
+  const { addNote, clearNotes } = useNotes();
 
   const [selectedAgentName, setSelectedAgentName] = useState<string>("");
   const [selectedAgentConfigSet, setSelectedAgentConfigSet] = useState<
@@ -106,7 +111,7 @@ function App() {
     useState<SessionStatus>("DISCONNECTED");
 
   const [isEventsPaneExpanded, setIsEventsPaneExpanded] =
-    useState<boolean>(true);
+    useState<boolean>(false);
   const [userText, setUserText] = useState<string>("");
   const [isPTTActive, setIsPTTActive] = useState<boolean>(false);
   const [isPTTUserSpeaking, setIsPTTUserSpeaking] = useState<boolean>(false);
@@ -155,6 +160,13 @@ function App() {
       connectToRealtime();
     }
   }, [selectedAgentName]);
+
+  useEffect(() => {
+    if (sessionStatus === "CONNECTING") {
+      // Clear notes when starting a new session
+      clearNotes();
+    }
+  }, [sessionStatus]);
 
   useEffect(() => {
     if (
@@ -224,6 +236,7 @@ function App() {
           outputGuardrails: [guardrail],
           extraContext: {
             addTranscriptBreadcrumb,
+            addNote,
           },
         });
       } catch (err) {
@@ -525,6 +538,10 @@ function App() {
             sessionStatus === "CONNECTED"
           }
         />
+
+        {agentSetKey === "aiTutoring" && (
+          <Notes className="w-80 flex-shrink-0" />
+        )}
 
         <Events isExpanded={isEventsPaneExpanded} />
       </div>

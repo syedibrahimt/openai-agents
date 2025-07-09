@@ -1,0 +1,16 @@
+I want to create reatime voice tutoring AI assistant while utilizing the code structure and the components from the current codebase.
+
+I want to create 3 agents
+1) Greeter agent
+2) Question Reader agent
+3) Step-by step tutoring agent
+4) Session closing agent
+
+Consider hard1.json is the source file for the particular question
+Here's how the flow should work.
+The Greeter Agent should - welcome the student to the current session and tell that you are going to teach the student topic with title
+The Question Reader Agent should - Ask whether it needs to read out the question for the student. if yes means then read out the problem with the options
+Step-by step tutoring agent should -  Follow the steps in the json and only ask the conceptual_questions.question from each step. it needs to validate the answer. If answer is wrong means then correct them by saying the right answer, if answer is right means move on to next step. Follow this flow until all steps are completed
+Session closing agent should - tell the student that the've completed the steps successfully and tell the final answer
+
+There should be proper agent handoffs, guardrails and muti-agent collaboration
